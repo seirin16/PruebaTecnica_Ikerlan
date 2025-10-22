@@ -1,4 +1,4 @@
-# Builds y compilados (C/CMake)
+
 build/
 *.o
 *.exe
@@ -8,24 +8,19 @@ CMakeFiles/
 Makefile
 cmake_install.cmake
 
-# VS Code
 .vscode/
 *.code-workspace
 
-# Archivos temporales y OS
 *.tmp
 *.log
 .DS_Store  # macOS
 Thumbs.db  # Windows
 
-# WSL/Archivos de Linux específicos
 /mnt/c/
 *.swp
 *.swo
 
-# Dependencias (si usas paquetes externos)
 deps/
 vendor/
 
-# Ignora el .gitignore mismo si hay errores
 !.gitignore
