@@ -32,6 +32,8 @@ int main() {
 
     unsigned char* xored = fixed_xor(bytes1, bytes2, len1);
 
+    printf("Resultado XOR: %s\n", xored);
+
     char* result_hex = bytes_to_hex(xored, len1);
 
     printf("Resultado XOR: %s\n", result_hex);

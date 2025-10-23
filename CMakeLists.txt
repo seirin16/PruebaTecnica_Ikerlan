@@ -7,3 +7,4 @@ target_include_directories(common INTERFACE common)
 
 add_subdirectory(set1/exercise1)
 add_subdirectory(set1/exercise2)
+add_subdirectory(set1/exercise3)

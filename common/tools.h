@@ -63,3 +63,16 @@ unsigned char* fixed_xor(const unsigned char* buf1, const unsigned char* buf2, s
     return result;
 }
 
+
+unsigned char* xor_key(const unsigned char* message, size_t len_message, const unsigned char* key, size_t len_key) {
+    unsigned char* result = malloc(len_message);
+
+    for (size_t i = 0; i < len_message; i++) {
+        result[i] = message[i] ^ key[i % len_key];
+    }
+
+    return result;
+    
+}
+
+
