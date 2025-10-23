@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(PruebIkerlan C)
-set(CMAKE_CXX_COMPILER gcc)
+project(PruebIkerlan LANGUAGES C CXX)
 
 add_library(common INTERFACE)
 target_include_directories(common INTERFACE common)
