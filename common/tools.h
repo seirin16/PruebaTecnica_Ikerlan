@@ -75,4 +75,17 @@ unsigned char* xor_key(const unsigned char* message, size_t len_message, const u
     
 }
 
+unsigned int getScore(const unsigned char* buf, size_t len) {
+    int score = 0;
+    for (size_t i = 0; i < len; i++) {
+        char letter = buf[i];
+        if (letter == 'e' || letter == 'a' || letter == 'r' ||
+            letter == 'i' || letter == 'o' || letter == 't' ||
+            letter == 'n' || letter == 's' || letter == ' ') {
+            score++;
+        }
+    }
+    return score;
+}
+
 
