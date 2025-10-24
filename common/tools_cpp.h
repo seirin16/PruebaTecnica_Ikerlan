@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <cctype>
 #include <stdexcept>
 #include <array>
@@ -9,27 +10,25 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <openssl/rand.h>
 
-inline const std::array<int8_t, 256> &base64_decode_table()
+inline const std::array<int8_t, 256> base64_decode_table()
 {
-    static const std::array<int8_t, 256> table = []
-    {
-        std::array<int8_t, 256> t{};
-        t.fill(-1);
 
-        for (int i = 'A'; i <= 'Z'; ++i)
-            t[i] = i - 'A';
-        for (int i = 'a'; i <= 'z'; ++i)
-            t[i] = i - 'a' + 26;
-        for (int i = '0'; i <= '9'; ++i)
-            t[i] = i - '0' + 52;
-        t[static_cast<unsigned char>('+')] = 62;
-        t[static_cast<unsigned char>('/')] = 63;
-        t[static_cast<unsigned char>('=')] = -2;
+    std::array<int8_t, 256> t{};
+    t.fill(-1);
 
-        return t;
-    }();
-    return table;
+    for (int i = 'A'; i <= 'Z'; ++i)
+        t[i] = i - 'A';
+    for (int i = 'a'; i <= 'z'; ++i)
+        t[i] = i - 'a' + 26;
+    for (int i = '0'; i <= '9'; ++i)
+        t[i] = i - '0' + 52;
+    t[static_cast<unsigned char>('+')] = 62;
+    t[static_cast<unsigned char>('/')] = 63;
+    t[static_cast<unsigned char>('=')] = -2;
+
+    return t;
 }
 
 inline std::vector<unsigned char> base64_to_bytes(const std::string &input)
@@ -201,4 +200,58 @@ std::vector<unsigned char> aes_cbc_decrypt(const std::vector<unsigned char> &cip
     }
     std::vector<unsigned char> unpadded_plaintext = pkcs7_unpad(plaintext);
     return unpadded_plaintext;
+}
+
+std::vector<unsigned char> generate_random_key()
+{
+    std::vector<unsigned char> key(16);
+    RAND_bytes(key.data(), 16);
+    return key;
+}
+
+std::vector<unsigned char> random_pad_input(const std::vector<unsigned char> &input)
+{
+    int prefix_len = 5 + rand() % 6;
+    int suffix_len = 5 + rand() % 6;
+
+    std::vector<unsigned char> padded(prefix_len + input.size() + suffix_len);
+    RAND_bytes(padded.data(), prefix_len);
+    std::copy(input.begin(), input.end(), padded.begin() + prefix_len);
+    RAND_bytes(padded.data() + prefix_len + input.size(), suffix_len);
+
+    return padded;
+}
+
+std::vector<unsigned char> encryption_oracle(const std::vector<unsigned char> &input)
+{
+    std::vector<unsigned char> key = generate_random_key();
+    std::vector<unsigned char> padded_input = random_pad_input(input);
+    std::vector<unsigned char> iv(16);
+    RAND_bytes(iv.data(), 16);
+
+    if (rand() % 2 == 0)
+    {
+        return aes_ecb_encrypt(padded_input, key.data());
+    }
+    else
+    {
+        return aes_cbc_encrypt(padded_input, key.data(), iv);
+    }
+}
+
+std::string detect_mode(const std::vector<unsigned char> &ciphertext)
+{
+    std::set<std::vector<unsigned char>> blocks;
+
+    for (size_t i = 0; i < ciphertext.size(); i += 16)
+    {
+        std::vector<unsigned char> block(ciphertext.begin() + i, ciphertext.begin() + i + 16);
+        if (blocks.count(block))
+        {
+            return "ECB"; 
+        }
+        blocks.insert(block);
+    }
+
+    return "CBC";
 }

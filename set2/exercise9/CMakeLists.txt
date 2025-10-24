@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(Set2_Exercise1 C)  # Especifica C
+project(Set2_Exercise9 C)  # Especifica C
 
 set(CMAKE_C_STANDARD 11)
 
