@@ -12,4 +12,4 @@ add_subdirectory(set1/exercise4)
 add_subdirectory(set1/exercise5)
 add_subdirectory(set1/exercise6)
 add_subdirectory(set1/exercise7)
-
+add_subdirectory(set1/exercise8)

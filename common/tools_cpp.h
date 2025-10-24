@@ -28,14 +28,12 @@ inline std::vector<unsigned char> base64_to_bytes(const std::string &input)
 {
     const auto& DECODE = base64_decode_table();
 
-    // Reservamos: Base64 produce ~3 bytes por cada 4 chars
     std::vector<unsigned char> out;
     out.reserve((input.size() * 3) / 4);
 
-    // Acumulador de bits: vamos sumando grupos de 6 bits
     uint32_t acc = 0;
     int acc_bits = 0;
-    bool seen_pad = false; // hemos visto '='
+    bool seen_pad = false; 
 
     for (unsigned char c : input)
     {
