@@ -4,10 +4,9 @@ project(Set2_Exercise1 C)  # Especifica C
 set(CMAKE_C_STANDARD 11)
 
 # Solo el ejecutable principal
-add_executable(exercise9 main.cpp)
-target_link_libraries(exercise9 PUBLIC common)
+add_executable(exercise10 main.cpp)
+target_link_libraries(exercise10 PUBLIC common)
 
 
 find_package(OpenSSL)
-target_link_libraries(exercise9 PUBLIC common OpenSSL::Crypto OpenSSL::SSL)
-
+target_link_libraries(exercise10 PUBLIC common OpenSSL::Crypto OpenSSL::SSL)
