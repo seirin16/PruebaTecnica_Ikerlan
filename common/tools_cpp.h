@@ -68,3 +68,12 @@ inline std::vector<unsigned char> base64_to_bytes(const std::string &input)
 
     return out;
 }
+
+std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char>& input, size_t block_size) {
+    size_t pad_len = block_size - (input.size() % block_size);
+    if (pad_len == 0) pad_len = block_size;
+
+    std::vector<unsigned char> padded = input;
+    padded.insert(padded.end(), pad_len, static_cast<unsigned char>(pad_len));
+    return padded;
+}
