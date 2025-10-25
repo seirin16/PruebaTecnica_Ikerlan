@@ -6,4 +6,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 # Solo el ejecutable principal
 add_executable(exercise6 main.cpp)
-target_link_libraries(exercise6 PUBLIC common)
+
+find_package(OpenSSL)
+target_link_libraries(exercise6 PUBLIC common OpenSSL::Crypto OpenSSL::SSL)

@@ -76,6 +76,21 @@ inline std::vector<unsigned char> base64_to_bytes(const std::string &input)
     return out;
 }
 
+std::vector<unsigned char> xor_repeating(const std::vector<unsigned char> &data,
+                                         const std::vector<unsigned char> &key)
+{
+    if (key.empty())
+    {
+        throw std::invalid_argument("Key must not be empty");
+    }
+    std::vector<unsigned char> result(data.size());
+    for (size_t i = 0; i < data.size(); ++i)
+    {
+        result[i] = data[i] ^ key[i % key.size()];
+    }
+    return result;
+}
+
 std::vector<unsigned char> xor_key_cpp(const std::vector<unsigned char> &left, const std::vector<unsigned char> &right)
 {
 
@@ -88,6 +103,30 @@ std::vector<unsigned char> xor_key_cpp(const std::vector<unsigned char> &left, c
     for (int i = 0; i < 16; ++i)
         result[i] = left[i] ^ right[i];
     return result;
+}
+
+unsigned char solve_single_byte_xor(const std::vector<unsigned char> &column)
+{
+    int best_score = -1;
+    unsigned char best_key = 0;
+
+    for (int k = 0; k < 256; k++)
+    {
+        std::vector<unsigned char> response(column.size());
+        for (size_t i = 0; i < column.size(); i++)
+        {
+            response[i] = column[i] ^ static_cast<unsigned char>(k);
+        }
+
+        int score = getScore(response.data(), response.size());
+
+        if (score > best_score)
+        {
+            best_score = score;
+            best_key = static_cast<unsigned char>(k);
+        }
+    }
+    return best_key;
 }
 
 std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char> &input, size_t block_size)
@@ -103,9 +142,28 @@ std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char> &input, si
     return padded;
 }
 
-std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char> &input)
+std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char> &input, size_t block_size = 16)
 {
+    if (input.empty() || input.size() % block_size != 0)
+    {
+        throw std::runtime_error("Invalid size: not a multiple of block size");
+    }
+
     unsigned char pad_len = input.back();
+
+    if (pad_len == 0 || pad_len > block_size)
+    {
+        throw std::runtime_error("Invalid padding: value out of range");
+    }
+
+    for (size_t i = 0; i < pad_len; i++)
+    {
+        if (input[input.size() - 1 - i] != pad_len)
+        {
+            throw std::runtime_error("Invalid padding: inconsistent bytes");
+        }
+    }
+
     return std::vector<unsigned char>(input.begin(), input.end() - pad_len);
 }
 
@@ -248,7 +306,7 @@ std::string detect_mode(const std::vector<unsigned char> &ciphertext)
         std::vector<unsigned char> block(ciphertext.begin() + i, ciphertext.begin() + i + 16);
         if (blocks.count(block))
         {
-            return "ECB"; 
+            return "ECB";
         }
         blocks.insert(block);
     }
