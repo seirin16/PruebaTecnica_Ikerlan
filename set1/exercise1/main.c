@@ -32,6 +32,7 @@ int main()
     char* base64 = bytes_to_base64(bytes, bytes_len);
 
     printf("Hex: %s\n", string);
+    printf("Bytes: %s\n", bytes);
     printf("Base64: %s\n", base64);
 
     free(bytes);

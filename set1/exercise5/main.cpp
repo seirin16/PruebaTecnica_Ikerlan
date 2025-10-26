@@ -40,12 +40,19 @@ int main()
     unsigned char *ciphertext = xor_key(reinterpret_cast<const unsigned char *>(plaintext.c_str()), plaintext.length(),
                                         reinterpret_cast<const unsigned char *>(key.c_str()), key.length());
 
-   
     char *hex = bytes_to_hex(ciphertext, plaintext.length());
+    std::cout << "Cifrado: " << hex << "\n";
 
-    std::cout << hex << "\n";
+    unsigned char *decryptext = xor_key(
+        ciphertext,
+        plaintext.length(),
+        reinterpret_cast<const unsigned char *>(key.c_str()),
+        key.length());
+
+    std::cout << "Descifrado: " << decryptext << "\n";
 
     free(ciphertext);
     free(hex);
+    free(decryptext);
     return 0;
 }

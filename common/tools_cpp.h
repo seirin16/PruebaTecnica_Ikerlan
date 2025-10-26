@@ -184,6 +184,18 @@ std::vector<unsigned char> aes_ecb_encrypt(const std::vector<unsigned char> &pla
     return ciphertext;
 }
 
+std::vector<unsigned char> aes_ecb_encrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
+{
+    std::vector<unsigned char> out(16);
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+    EVP_CIPHER_CTX_set_padding(ctx, 0);
+    int len;
+    EVP_EncryptUpdate(ctx, out.data(), &len, block.data(), 16);
+    EVP_CIPHER_CTX_free(ctx);
+    return out;
+}
+
 std::vector<unsigned char> aes_ecb_decrypt(const std::vector<unsigned char> &ciphertext, const unsigned char *key)
 {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
@@ -201,14 +213,14 @@ std::vector<unsigned char> aes_ecb_decrypt(const std::vector<unsigned char> &cip
     return plaintext;
 }
 
-std::vector<unsigned char> aes_ecb_encrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
+std::vector<unsigned char> aes_ecb_decrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
 {
     std::vector<unsigned char> out(16);
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+    EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
     EVP_CIPHER_CTX_set_padding(ctx, 0);
     int len;
-    EVP_EncryptUpdate(ctx, out.data(), &len, block.data(), 16);
+    EVP_DecryptUpdate(ctx, out.data(), &len, block.data(), 16);
     EVP_CIPHER_CTX_free(ctx);
     return out;
 }
@@ -229,18 +241,6 @@ std::vector<unsigned char> aes_cbc_encrypt(const std::vector<unsigned char> &pla
     }
 
     return ciphertext;
-}
-
-std::vector<unsigned char> aes_ecb_decrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
-{
-    std::vector<unsigned char> out(16);
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
-    EVP_CIPHER_CTX_set_padding(ctx, 0);
-    int len;
-    EVP_DecryptUpdate(ctx, out.data(), &len, block.data(), 16);
-    EVP_CIPHER_CTX_free(ctx);
-    return out;
 }
 
 std::vector<unsigned char> aes_cbc_decrypt(const std::vector<unsigned char> &ciphertext, const unsigned char *key, const std::vector<unsigned char> &iv)
