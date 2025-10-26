@@ -152,6 +152,7 @@ int main()
     size_t target_block_index = 0;
     size_t trial_pad = 0;
 
+    // Calculamos el block size. "Sabemos" que es 16, pero lo hacemos por si acaso.
     for (size_t pad = 0; pad < block_size; ++pad)
     {
         std::string trial_user(pad, 'A');
@@ -174,5 +175,7 @@ int main()
 
     bool ok = is_admin(ct, iv);
     std::cout << (ok ? "Admin granted\n" : "Admin not present\n");
+
+
     return 0;
 }

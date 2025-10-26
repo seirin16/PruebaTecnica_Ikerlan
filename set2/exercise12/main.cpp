@@ -93,17 +93,22 @@ int detect_block_size()
 
 std::vector<unsigned char> decrypt_ecb_unknown_string(int block_size)
 {
+    // Caracteres que se van adivinando
     std::vector<unsigned char> known;
     size_t total_len = ecb_oracle({}).size();
 
     for (size_t i = 0; i < total_len; ++i)
     {
+        // Posicion del bloque que estamos descifrando
         size_t block_index = i / block_size;
+
+        // Longitud del padding necesario para alinear el byte a adivinar al final de un bloque
         size_t pad_len = block_size - (i % block_size) - 1;
 
         std::vector<unsigned char> input(pad_len, 'A');
         auto reference = ecb_oracle(input);
 
+        // Calcular todos los valores posibles de AAAAAAAx encriptados (256)
         std::map<std::vector<unsigned char>, unsigned char> dict;
         for (int b = 0; b < 256; ++b)
         {
@@ -116,10 +121,12 @@ std::vector<unsigned char> decrypt_ecb_unknown_string(int block_size)
                                              encrypted.begin() + (block_index + 1) * block_size);
             dict[block] = static_cast<unsigned char>(b);
         }
+
+
         std::vector<unsigned char> target_block(reference.begin() + block_index * block_size,
                                                 reference.begin() + (block_index + 1) * block_size);
 
-        if (dict.count(target_block))
+        if (dict.count(target_block)) // Existe
         {
             known.push_back(dict[target_block]);
         }
@@ -149,5 +156,6 @@ int main()
 
     std::cout << "Mensaje descifrado:\n"
               << result << "\n";
+              
     return 0;
 }

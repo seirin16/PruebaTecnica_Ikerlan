@@ -1,0 +1,48 @@
+1000
+0010
+
+
+1010
+
+a ^ b = c --> Esto es como la propiedad conmutativa esta
+c ^ b = a
+c ^ a = b
+
+
+a ^ b = b ^ a
+
+pad = XXXXXXXXXXX ^ ;admin=true 
+XXXXXXXXXXX ^ pad = ;admin=true
+
+%20MCs;userdata=XXXXXXXXXXX;comment2=%20like%20a%20pound%20of%20baco
+%20MCs;userdata=;admin=true;comment2=%20like%20a%20pound%20of%20baco --> Los 16 bytes antes de admin=true salen destruidos
+ 
+d(E1 E2) = D1 D1  
+d(E1xA E2) = R1 D2xA
+
+
+//eje12 
+123456789
+
+AAAAAAA1 23456789    AAAAAAAx 123456789
+AAAAAA12 3456789     AAAAAA1x 123456789
+AAAAA123 456789      AAAAA12x 123456789
+
+A1234567 89          A123456x 123456789
+12345678 9
+AAAAAAA1 23456789    AAAAAAA1 2345678x 123456789
+
+
+
+//eje14 --> Problema aqui es la len del prefijo, si es aleatorio es casi imposible esto
+OFFSET
+
+PAAAAAAA AAAAAA1 23456789    PAAAAAAX 123456789
+
+AAAAAAA1 23456789    AAAAAAAx 123456789
+AAAAAA12 3456789     AAAAAA1x 123456789
+AAAAA123 456789      AAAAA12x 123456789
+
+A1234567 89          A123456x 123456789
+12345678 9
+AAAAAAA1 23456789    AAAAAAA1 2345678x 123456789
