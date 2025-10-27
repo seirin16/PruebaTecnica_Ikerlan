@@ -51,12 +51,24 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+//Este ejercicio ya es algo más complejo. Aqui si hay que romper un cifrado de XOR con clave repetida,
+//usando para ello la distancia de Hamming para adivinar la longitud de la clave
+
+//La distancia de Hamming es el numero de bits que difieren entre dos bloques de igual longitud. Por ejemplo,
+//la distancia de Hamming entre "this is a test" y "wokka wokka!!!" es 37. Este 37 significa que tienen una estructura similar,
+//si además tuvieran más caracrteres iguales, la distancia de Hamming sería menor. (- distancia = más parecido)
+
+//Lo que te puedes preguntar es pq funciona esto de hamming para adivinar la longitud de la clave. La razon es que si tomas dos bloques
+//de texto cifrado con la misma clave, y haces un XOR entre ambos bloques. La distancia de Hamming mide cuántos bits 
+//difieren (es decir, cuántos 1s hay en el resultado del XOR entre dos bloques). Cuanto menor sea ese número, 
+//significa que más bits son iguales. Eso implica mayor similitud entre los dos bloques después del XOR.
+
 int bit_counter(char b)
 {
     char count = 0;
-    for (int bitIndex = 0; bitIndex < (sizeof(char) * 8) - 1; ++bitIndex)
+    for (int bitIndex = 0; bitIndex < (sizeof(char) * 8) - 1; ++bitIndex) //Para cada bit del byte
     {
-        if (b & 0x01)
+        if (b & 0x01) //Si el bit menos significativo es 1
         {
             count++;
         }
@@ -73,13 +85,16 @@ size_t hamming_distance_bits(const std::vector<unsigned char> &a,
         throw std::invalid_argument("Hamming requires equal-length buffers");
     }
     size_t dist = 0;
-    for (size_t i = 0; i < a.size(); ++i)
+    for (size_t i = 0; i < a.size(); ++i) //Para cada byte
     {
-        dist += bit_counter(static_cast<unsigned char>(a[i] ^ b[i]));
+        dist += bit_counter(static_cast<unsigned char>(a[i] ^ b[i])); //Cuenta los bits a 1 del XOR entre ambos bytes
     }
     return dist;
 }
 
+//Funcion que devuelve los posibles tamaños de clave, ordenados por probabilidad (menor distancia de Hamming normalizada)
+//Usamos la media de las distancias de Hamming normalizadas entre los primeros 4 bloques de tamaño k para mas precisión
+//top_n indica cuantos tamaños de clave devolver que eso es lo que vamos a probar luego
 std::vector<int> guess_keysizes(const std::vector<unsigned char> &ct,
                                 int min_k = 2, int max_k = 40, int top_n = 3)
 {
@@ -90,9 +105,9 @@ std::vector<int> guess_keysizes(const std::vector<unsigned char> &ct,
     };
     std::vector<Candidate> scores;
 
-    for (int k = min_k; k <= max_k; ++k)
+    for (int k = min_k; k <= max_k; ++k) //Para cada posible tamaño de clave (2 a 40)
     {
-        if (ct.size() < static_cast<size_t>(k * 4))
+        if (ct.size() < static_cast<size_t>(k * 4)) //Necesitamos al menos 4 bloques de tamaño k para hacer la media
             continue;
 
         auto b1 = std::vector<unsigned char>(ct.begin(), ct.begin() + k);
@@ -110,18 +125,21 @@ std::vector<int> guess_keysizes(const std::vector<unsigned char> &ct,
         scores.push_back({k, avg});
     }
 
+    //Ordenamos los tamaños de clave por puntuacion (distancia de Hamming normalizada). Cuanto menor, mejor
     std::sort(scores.begin(), scores.end(),
               [](const Candidate &a, const Candidate &b)
-              { return a.score < b.score; });
+              { return a.score < b.score; }); 
 
     std::vector<int> result;
-    for (int i = 0; i < top_n && i < (int)scores.size(); ++i)
+    for (int i = 0; i < top_n && i < (int)scores.size(); ++i) 
     {
-        result.push_back(scores[i].keysize);
+        result.push_back(scores[i].keysize); //Devolvemos los top_n tamaños de clave más probables. No quieres probar todos los 39 posibles (2-40), porque sería ineficiente y ruidoso (algunos KEYSIZE falsos podrían colarse por azar). En cambio, tomas los 2-3 más prometedores (los con la distancia más baja) para atacar después.
     }
     return result;
 }
 
+//Funcion que transpone los bloques de tamaño keysize
+//Esto sirve para agrupar los bytes que han sido cifrados con la misma byte de la clave
 std::vector<std::vector<unsigned char>>
 transpose_blocks(const std::vector<unsigned char> &ct, int keysize)
 {
@@ -163,13 +181,13 @@ int main()
 
     for (int keysize : ks_candidates)
     {
-        auto cols = transpose_blocks(ciphertext, keysize);
-
+        //Transponemos los bloques pq asi agrupamos los bytes cifrados con la misma byte de la clave
+        auto cols = transpose_blocks(ciphertext, keysize); 
         std::vector<unsigned char> key;
         for (const auto &col : cols)
         {
-            unsigned char k = solve_single_byte_xor(col);
-            key.push_back(k);
+            unsigned char k = solve_single_byte_xor(col); //Resolvemos cada bloque como si fuera un cifrado XOR con byte unico
+            key.push_back(k); //Obtenemos la clave completa
         }
 
         auto plain = xor_repeating(ciphertext, key);

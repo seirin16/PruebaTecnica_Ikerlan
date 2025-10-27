@@ -19,6 +19,14 @@
 // You now have our permission to make "ETAOIN SHRDLU" jokes on Twitter.
 //-----------------------------------------------------------------------------------------------------------------
 
+//Lo que mola de esto es que es como un ataque de fuerza bruta muy basico.
+//Tenemos un mensaje que ha sido cifrado con un XOR con un byte unico (una clave de un byte).
+//Para descifrarlo, probamos todas las posibles claves (256 posibilidades) y puntuamos el resultado segun lo parecido que sea a un texto en ingles.
+//El que tenga la puntuacion mas alta, es el que probablemente sea el mensaje original.
+
+//Como sabemos la puntuacion, BOOM --> usamos la frecuencia de las letras mas comunes en ingles (e, a, r, i, o, t, n, s y espacio).
+
+
 int main()
 {
       const char *string = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
@@ -34,14 +42,14 @@ int main()
       int max_score = 0;
       char *solution;
 
-      for (unsigned int c = 0; c < 256; c++)
+      for (unsigned int c = 0; c < 256; c++) // Probamos todas las posibles claves (0-255)
       {
 
             unsigned char byte = (unsigned char)c;
 
-            unsigned char *response = xor_key(message, len1, &byte, 1);
+            unsigned char *response = xor_key(message, len1, &byte, 1); // Este XOR es con un byte unico, por eso tenemos otro metodo
 
-            int score = getScore(response, len1);
+            int score = getScore(response, len1); // Puntuamos el resultado
 
             if (score > max_score)
             {

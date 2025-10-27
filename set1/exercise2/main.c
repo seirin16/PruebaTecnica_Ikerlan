@@ -20,7 +20,11 @@
 // 746865206b696420646f6e277420706c6179
 //------------------------------------------------------------------------------------------------------------------
 
-
+//El XOR es algo trivial, es como cuando hablamos de AND y OR.
+//En este caso, tenemos que hacer un XOR entre dos buffers de bytes.
+//Para ello, primero tenemos que convertir los strings hexadecimales a bytes.
+//Luego, hacemos el XOR byte a byte (XOR es una operacion bit a bit 1 XOR 1 = 0, 0 XOR 0 = 0, 1 XOR 0 = 1, 0 XOR 1 = 1).
+//Finalmente, convertimos el resultado a hexadecimal para mostrarlo.
 
 int main() {
     const char* hex1 = "1c0111001f010100061a024b53535009181c";
@@ -30,7 +34,7 @@ int main() {
     unsigned char* bytes1 = hex_to_bytes(hex1, &len1);
     unsigned char* bytes2 = hex_to_bytes(hex2, &len2);
 
-    unsigned char* xored = fixed_xor(bytes1, bytes2, len1);
+    unsigned char* xored = fixed_xor(bytes1, bytes2, len1); // Asumimos que len1 == len2 ya que sino no funcionaria
 
     printf("Resultado XOR: %s\n", xored);
 

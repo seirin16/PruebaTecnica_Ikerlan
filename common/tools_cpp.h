@@ -105,6 +105,7 @@ std::vector<unsigned char> xor_key_cpp(const std::vector<unsigned char> &left, c
     return result;
 }
 
+//Funcion que resuelve un bloque cifrado con XOR contra un byte unico
 unsigned char solve_single_byte_xor(const std::vector<unsigned char> &column)
 {
     int best_score = -1;
@@ -200,7 +201,7 @@ std::vector<unsigned char> aes_ecb_decrypt(const std::vector<unsigned char> &cip
 {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
-    EVP_CIPHER_CTX_set_padding(ctx, 1);
+    EVP_CIPHER_CTX_set_padding(ctx, 1); //Aqui le mete el padding para que salga 16 bytes
 
     std::vector<unsigned char> plaintext(ciphertext.size() + 16);
     int len, plaintext_len;

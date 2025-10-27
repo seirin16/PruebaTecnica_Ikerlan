@@ -30,6 +30,12 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+//Contrario que los ejercicios anteriores, aqui no hay que romper ningun cifrado,
+//sino que hay que implementar el cifrado XOR con clave repetida.
+
+//Cual es la magia del XOR: Que al igual que sirve para descifrar, sirve para cifrar.
+//Si aplicas el XOR dos veces con la misma clave, recuperas el mensaje original.
+
 int main()
 {
     std::string plaintext =

@@ -27,6 +27,13 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+//Lo dicho en el anterior ejercicio, el problema de ECB es que es determinista, por lo que si un bloque de 16 bytes se repite en el texto plano, el bloque cifrado correspondiente tambien se repetira.
+//Por lo tanto, para detectar si un texto ha sido cifrado con ECB, basta con contar cuantas veces se repite cada bloque de 16 bytes en el texto cifrado.
+//Si un texto tiene muchos bloques repetidos, es muy probable que haya sido cifrado con ECB.
+
+//Tengo que suponer que la linea encriptada es lo suficientemente larga para que esta se divida en B0 B1 B2 B3 B4... y 
+//que excatamente tenga el mismo contenido para que por ejemplo B0 y B3 coincidad y saber que es ECB 
+
 int main()
 {
     std::ifstream file("/home/seirin16/pruebaIkerlan/PruebaTecnica_Ikerlan/set1/exercise8/file3.txt");
@@ -48,11 +55,11 @@ int main()
         int num_blocks = len / block_size;
 
         int repetitions = 0;
-        for (int i = 0; i < num_blocks; i++)
+        for (int i = 0; i < num_blocks; i++) // Recorremos cada bloque
         {
-            for (int j = i + 1; j < num_blocks; j++)
+            for (int j = i + 1; j < num_blocks; j++) // Comparamos con los bloques siguientes
             {
-                if (std::memcmp(ciphertext + i * block_size, ciphertext + j * block_size, block_size) == 0)
+                if (std::memcmp(ciphertext + i * block_size, ciphertext + j * block_size, block_size) == 0) // Si los bloques son iguales
                 {
                     repetitions++;
                 }

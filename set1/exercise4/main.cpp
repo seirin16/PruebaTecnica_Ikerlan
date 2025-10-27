@@ -20,6 +20,11 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+//Es basicamente lo mismo que el ejercicio 3, pero ahora tenemos que probar con cada linea del fichero,
+//y quedarnos con la que nos de la mejor puntuacion.
+
+//Destacar que aqui paso a C++ ya que es mucho más facil manejar ficheros y strings que en C puro.
+
 int main()
 {
     std::ifstream file("/home/seirin16/pruebaIkerlan/PruebaTecnica_Ikerlan/set1/exercise4/file.txt");
@@ -34,15 +39,15 @@ int main()
     std::string best_plain;
     unsigned char best_key = 0;
 
-    while (std::getline(file, line))
+    while (std::getline(file, line)) // Leer cada linea del fichero
     {
         size_t len;
         unsigned char *message = hex_to_bytes(line.c_str(), &len);
 
-        for (int k = 0; k < 256; k++)
+        for (int k = 0; k < 256; k++) // Probar todas las claves posibles (0-255)
         {
             unsigned char key = static_cast<unsigned char>(k);
-            unsigned char *response = xor_key(message, len, &key, 1);
+            unsigned char *response = xor_key(message, len, &key, 1); // XOR con la clave de un solo byte
 
             int score = getScore(response, len);
 

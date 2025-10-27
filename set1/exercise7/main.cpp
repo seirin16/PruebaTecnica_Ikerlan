@@ -32,6 +32,18 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+//Empezamos con los algoritmos de descifrado AES ECB
+//Tienes que saber que AES 128 trabaja siempre con 16 bytes, que utiliza matrces de 4x4, se usa 10 rondas de cifrado/descifrado con
+// 4 transformaciones principales: SubBytes, ShiftRows, MixColumns y AddRoundKey.
+
+//El AES 128 tiene varias formas, ahora hablamos del ECB (Electronic Code Book) que es el modo mas sencillo de todos.
+//Sencillo si, pero no es el mas seguro, ya que si tenemos bloques iguales en el texto plano,
+//estos se cifran en bloques iguales en el texto cifrado, lo que puede dar pistas al atacante.
+
+//Y pq te preguntas? Pues pq en este modo, cada bloque de 16 bytes se cifra de forma independiente,
+//sin tener en cuenta los bloques anteriores o posteriores. ECB ES DETERMINISTA.
+
+//Al igual que todo algoritmo pues tienes siempre el texto que quieres cifrar/descifrar y la clave con la que lo haces.
 int main()
 {
     std::ifstream file("/home/seirin16/pruebaIkerlan/PruebaTecnica_Ikerlan/set1/exercise7/file2.txt");
