@@ -65,32 +65,32 @@
 // 12345678 9
 
 // Paso 0: Byte 0 ('1')
-// Referencia:  AAAAAAA1 23456789
-// Diccionario: AAAAAAAx 12345678 9 → Coincide cuando x='1'
+// Referencia:  AAAAAAAT TTTTTTTT
+// Diccionario: AAAAAAAx TTTTTTTT T → Coincide cuando x='1'
 // Paso 1: Byte 1 ('2')
-// Referencia:  AAAAAA12 3456789
-// Diccionario: AAAAAA1x 23456789 → Coincide cuando x='2'
+// Referencia:  AAAAAA1T TTTTTTT
+// Diccionario: AAAAAA1x TTTTTTTT → Coincide cuando x='2'
 // Paso 2: Byte 2 ('3')
-// Referencia:  AAAAA123 456789
-// Diccionario: AAAAA12x 3456789 → Coincide cuando x='3'
+// Referencia:  AAAAA12T TTTTTT
+// Diccionario: AAAAA12x TTTTTTT → Coincide cuando x='3'
 // Paso 3: Byte 3 ('4')
-// Referencia:  AAAA1234 56789
-// Diccionario: AAAA123x 456789 → Coincide cuando x='4'
+// Referencia:  AAAA123T TTTTT
+// Diccionario: AAAA123x TTTTTT → Coincide cuando x='4'
 // Paso 4: Byte 4 ('5')
-// Referencia:  AAA12345 6789
-// Diccionario: AAA1234x 56789 → Coincide cuando x='5'
+// Referencia:  AAA1234T TTTT
+// Diccionario: AAA1234x TTTTT → Coincide cuando x='5'
 // Paso 5: Byte 5 ('6')
-// Referencia:  AA123456 789
-// Diccionario: AA12345x 6789 → Coincide cuando x='6'
+// Referencia:  AA12345T TTT
+// Diccionario: AA12345x TTTT → Coincide cuando x='6'
 // Paso 6: Byte 6 ('7')
-// Referencia:  A1234567 89
-// Diccionario: A123456x 789 → Coincide cuando x='7'
+// Referencia:  A123456T TT
+// Diccionario: A123456x TTT → Coincide cuando x='7'
 // Paso 7: Byte 7 ('8')
-// Referencia:  12345678 9
-// Diccionario: 1234567x 89 → Coincide cuando x='8'
+// Referencia:  1234567T T
+// Diccionario: 1234567x TT → Coincide cuando x='8'
 // Paso 8: Byte 8 ('9') – Salto a bloque 1
-// Referencia:  AAAAAAA1 2345678 9 (en bloque 1)
-// Diccionario: AAAAAAA1 234567x 9 → Coincide cuando x='9' (bloque 1 simulado con known)
+// Referencia:  AAAAAAA1 2345678T (en bloque 1)
+// Diccionario: AAAAAAA1 2345678x T → Coincide cuando x='9' (bloque 1 simulado con known)
 namespace
 {
     const char *UNKNOWN_B64 =
