@@ -62,6 +62,14 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+// Esto nos muestra otra vez el peligro de usar ECB para cifrar datos estructurados:
+// ya que podemos "cortar y pegar" bloques cifrados para alterar la semántica de los datos.
+
+// Aqui jugamos con el hecho de que el formato del perfil es siempre el mismo, y que podemos hacer que un bloque
+// contenga justo el texto "admin" con el padding adecuado, para luego sustituir el bloque correspondiente al rol
+// en el perfil cifrado de la víctima.
+
+
 namespace
 {
     std::vector<unsigned char> GLOBAL_KEY = generate_random_key();

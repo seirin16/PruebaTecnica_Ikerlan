@@ -31,6 +31,13 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+// Aqui tenemos el concepto del padding, como ya sabemos esto del AES funciona con bloques de 16 bytes, pero que pasa cuando
+//el bloque no es exacto. Tenemos 3 escenarios:
+//1. El bloque es exacto, en este caso se agrega un bloque extra de padding
+//2. El bloque no es exacto, en este caso se agrega el padding necesario para completar el bloque
+//3. El bloque es mayor que el tamaño del bloque, en este caso se agrega el padding necesario para completar el bloque
+
+
 int main()
 {
     std::string msg = "YELLOW SUBMARINE";

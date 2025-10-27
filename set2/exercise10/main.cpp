@@ -32,6 +32,23 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+// Ahora tenemos un modo nuevo modo, que es el CBC.
+// Lo mas importante es que tenemos que ir guardando el bloque cifrado anterior para hacer el XOR con el siguiente bloque descifrado.
+
+//PARA DESCIFRAR EN CBC:
+//En otras palabras si tenemos C0 C1 C2 C3... y P0 P1 P2 P3...
+//Para obtener P0 hacemos D(C0) XOR IV
+//Para obtener P1 hacemos D(C1) XOR C0
+//Para obtener P2 hacemos D(C2) XOR C1
+//Y asi sucesivamente... Usamos el bloque anterior para cifrar el siguiente bloque
+
+//PARA CIFRAR EN CBC:
+//En otras palabras, si tenemos P0 P1 P2 P3... e IV, y queremos generar C0 C1 C2 C3...
+//Para obtener C0 hacemos E(P0) XOR IV
+//Para obtener C1 hacemos E(P1) XOR C0
+//Para obtener C2 hacemos E(P2) XOR C1
+//Y así sucesivamente... Usamos el bloque cifrado anterior para el siguiente bloque plano.
+
 int main()
 {
     std::ifstream file("/home/seirin16/pruebaIkerlan/PruebaTecnica_Ikerlan/set2/exercise10/file4.txt");

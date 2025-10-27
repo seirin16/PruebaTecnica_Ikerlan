@@ -43,6 +43,13 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+// Este ejercicio es la coninuacion del pkcs7.
+// Simplemente hay que comprobar que el padding es correcto y si lo es, quitarlo.
+
+// Como sabemos lo que hay que quitar, simplemente comprobamos que los ultimos n bytes son iguales a n.
+// Como ejemplo, si el ultimo byte es 0x04, los ultimos 4 bytes deben ser 0x04 0x04 0x04 0x04.
+// Si no es asi, lanzamos una excepcion.
+
 int main()
 {
     std::string s1 = "ICE ICE BABY\x04\x04\x04\x04";
@@ -58,7 +65,7 @@ int main()
         std::cout << "Error: " << e.what() << "\n";
     }
 
-        std::string s2 = "ICE ICE BABY\x05\x05\x05\x05";
+    std::string s2 = "ICE ICE BABY\x05\x05\x05\x05"; //Esto da error porque el padding es incorrecto
     std::vector<unsigned char> v2(s2.begin(), s2.end());
 
     try

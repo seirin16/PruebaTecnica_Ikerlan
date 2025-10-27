@@ -105,7 +105,7 @@ std::vector<unsigned char> xor_key_cpp(const std::vector<unsigned char> &left, c
     return result;
 }
 
-//Funcion que resuelve un bloque cifrado con XOR contra un byte unico
+// Funcion que resuelve un bloque cifrado con XOR contra un byte unico
 unsigned char solve_single_byte_xor(const std::vector<unsigned char> &column)
 {
     int best_score = -1;
@@ -132,25 +132,25 @@ unsigned char solve_single_byte_xor(const std::vector<unsigned char> &column)
 
 std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char> &input, size_t block_size)
 {
-    size_t pad_len = block_size - (input.size() % block_size);
+    size_t pad_len = block_size - (input.size() % block_size); // Cantidad de padding necesario
     if (pad_len == 0)
     {
         pad_len = block_size;
     }
 
     std::vector<unsigned char> padded = input;
-    padded.insert(padded.end(), pad_len, static_cast<unsigned char>(pad_len));
+    padded.insert(padded.end(), pad_len, static_cast<unsigned char>(pad_len)); // Agregamos el padding
     return padded;
 }
 
 std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char> &input, size_t block_size = 16)
 {
-    if (input.empty() || input.size() % block_size != 0)
+    if (input.empty() || input.size() % block_size != 0) 
     {
         throw std::runtime_error("Invalid size: not a multiple of block size");
     }
 
-    unsigned char pad_len = input.back();
+    unsigned char pad_len = input.back(); // Ultimo byte indica la longitud del padding
 
     if (pad_len == 0 || pad_len > block_size)
     {
@@ -165,7 +165,7 @@ std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char> &input, 
         }
     }
 
-    return std::vector<unsigned char>(input.begin(), input.end() - pad_len);
+    return std::vector<unsigned char>(input.begin(), input.end() - pad_len); // Quitar el padding
 }
 
 std::vector<unsigned char> aes_ecb_encrypt(const std::vector<unsigned char> &plaintext, const unsigned char *key)
@@ -185,23 +185,11 @@ std::vector<unsigned char> aes_ecb_encrypt(const std::vector<unsigned char> &pla
     return ciphertext;
 }
 
-std::vector<unsigned char> aes_ecb_encrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
-{
-    std::vector<unsigned char> out(16);
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
-    EVP_CIPHER_CTX_set_padding(ctx, 0);
-    int len;
-    EVP_EncryptUpdate(ctx, out.data(), &len, block.data(), 16);
-    EVP_CIPHER_CTX_free(ctx);
-    return out;
-}
-
 std::vector<unsigned char> aes_ecb_decrypt(const std::vector<unsigned char> &ciphertext, const unsigned char *key)
 {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
-    EVP_CIPHER_CTX_set_padding(ctx, 1); //Aqui le mete el padding para que salga 16 bytes
+    EVP_CIPHER_CTX_set_padding(ctx, 1); // Aqui le mete el padding para que salga 16 bytes
 
     std::vector<unsigned char> plaintext(ciphertext.size() + 16);
     int len, plaintext_len;
@@ -214,14 +202,14 @@ std::vector<unsigned char> aes_ecb_decrypt(const std::vector<unsigned char> &cip
     return plaintext;
 }
 
-std::vector<unsigned char> aes_ecb_decrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
+std::vector<unsigned char> aes_ecb_encrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
 {
     std::vector<unsigned char> out(16);
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+    EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
     EVP_CIPHER_CTX_set_padding(ctx, 0);
     int len;
-    EVP_DecryptUpdate(ctx, out.data(), &len, block.data(), 16);
+    EVP_EncryptUpdate(ctx, out.data(), &len, block.data(), 16);
     EVP_CIPHER_CTX_free(ctx);
     return out;
 }
@@ -238,10 +226,23 @@ std::vector<unsigned char> aes_cbc_encrypt(const std::vector<unsigned char> &pla
         auto xored = xor_key_cpp(block, prev_block);
         auto encrypted = aes_ecb_encrypt_block(xored, key);
         ciphertext.insert(ciphertext.end(), encrypted.begin(), encrypted.end());
-        prev_block = encrypted;
+        prev_block = encrypted; // ← ¡Aquí está el truco! Actualizas prev_block con C_i para la siguiente iteración.
     }
 
     return ciphertext;
+}
+
+// Trabaja con bloques de 16 bytes independientes pq como lo llamamos en CBC se usa asi
+std::vector<unsigned char> aes_ecb_decrypt_block(const std::vector<unsigned char> &block, const unsigned char *key)
+{
+    std::vector<unsigned char> out(16);
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+    EVP_CIPHER_CTX_set_padding(ctx, 0);
+    int len;
+    EVP_DecryptUpdate(ctx, out.data(), &len, block.data(), 16);
+    EVP_CIPHER_CTX_free(ctx);
+    return out;
 }
 
 std::vector<unsigned char> aes_cbc_decrypt(const std::vector<unsigned char> &ciphertext, const unsigned char *key, const std::vector<unsigned char> &iv)
@@ -249,13 +250,13 @@ std::vector<unsigned char> aes_cbc_decrypt(const std::vector<unsigned char> &cip
     std::vector<unsigned char> plaintext;
     std::vector<unsigned char> prev_block = iv;
 
-    for (size_t i = 0; i < ciphertext.size(); i += 16)
+    for (size_t i = 0; i < ciphertext.size(); i += 16) // 16 bytes por bloque
     {
         std::vector<unsigned char> block(ciphertext.begin() + i, ciphertext.begin() + i + 16);
-        auto decrypted = aes_ecb_decrypt_block(block, key);
+        auto decrypted = aes_ecb_decrypt_block(block, key); // Desencriptamos el bloque actual
         auto xored = xor_key_cpp(decrypted, prev_block);
         plaintext.insert(plaintext.end(), xored.begin(), xored.end());
-        prev_block = block;
+        prev_block = block; // ¡Aquí está el truco! Se actualiza prev_block con C_i para que sea el "anterior" en la siguiente iteración.
     }
     std::vector<unsigned char> unpadded_plaintext = pkcs7_unpad(plaintext);
     return unpadded_plaintext;
@@ -304,8 +305,8 @@ std::string detect_mode(const std::vector<unsigned char> &ciphertext)
 
     for (size_t i = 0; i < ciphertext.size(); i += 16)
     {
-        std::vector<unsigned char> block(ciphertext.begin() + i, ciphertext.begin() + i + 16);
-        if (blocks.count(block))
+        std::vector<unsigned char> block(ciphertext.begin() + i, ciphertext.begin() + i + 16); // Extrae el bloque de 16 bytes
+        if (blocks.count(block)) // Si el bloque ya existe, es ECB
         {
             return "ECB";
         }

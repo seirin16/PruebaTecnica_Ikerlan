@@ -56,6 +56,31 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+
+//Ya nos metemos en ejercicios bastante complejos. En este caso, el reto es hacer un bitflipping attack en CBC.
+//La idea es que tenemos una funcion que encripta datos en CBC, pero antes de encriptarlos, les añade un prefijo y un sufijo fijos,
+//y ademas "escapa" los caracteres ';' y '=' para que no puedan ser usados para inyectar datos maliciosos.
+
+//Basicamente, lo que queremos hacer es inyectar el string ";admin=true;" en el plaintext desencriptado, para que la funcion is_admin
+//devuelva true. Pero como no podemos usar directamente esos caracteres (son escapados), tenemos que modificar el ciphertext para que al desencriptarlo
+//y hacer el XOR con el bloque anterior, el resultado sea el deseado.
+
+//El bloque de 16bytes de comment1=cooking nos da igual, pq no nos importa, por eso al final se ve bien
+//Tenemos %20MCs;userdata=XXXXXXXXXXX;comment2=%20like%20a%20pound%20of%20baco y queremos conseguir %20MCs;userdata=;admin=true;comment2=%20like%20a%20pound%20of%20baco
+//Que ocurre ahora, tenemos que aplicar un XOR para cambiar XXXXXXXXXXX por ;admin=true;
+
+//Lo que no entendia es por qué el bloque anterior al bloque que queremos modificar es el que tenemos que cambiar y pq se destroza el bloque actual
+//La razon es que en CBC, el bloque desencriptado se XORa con el bloque anterior, por lo que si modificamos el bloque anterior, el bloque actual se ve afectado en
+//el mismo byte que hemos modificado en el bloque anterior. Por eso podemos hacer el bitflipping attack modificando el bloque anterior al que queremos cambiar.
+
+//%20MCs;userdata= es lo que se va a destruir
+
+//Cuales son los pasos:
+//1 - Calcular el bloque donde empieza nuestro input (XXXXXXXXXXXX tiene la misma longitud que ;admin=true;)
+//2 - Aplicamos el XOR entre el bloque anterior y el bloque que queremos conseguir ( XXXXXXXXXXX XOR ;admin=true;)
+//3 - Cifro toda la linea con aes cbc con clave fijo
+//4 - Xor cadena cifrada (al bloque 16 de antes de admin, %20MCs;userdata=) QUE APLICA SOLO AL SIGUIENTE, por eso comment2=%20like%20a%20pound%20of%20baco no se ve afectado
+//5 - Descifro todo (por eso se destroza el bloque de %20MCs;userdata= ) con cbc para que se aplique el xor de antes
 namespace
 {
     std::vector<unsigned char> GLOBAL_AES_KEY = generate_random_key();
@@ -115,7 +140,8 @@ bool is_admin(const std::vector<unsigned char> &ciphertext, const std::vector<un
 
     return false;
 }
-
+// Modifica el ciphertext para que al desencriptarlo, el bloque en target_block_index contenga los bytes de 'desired'
+// en lugar de los bytes de 'placeholder'. Ambos vectores deben tener la misma longitud.
 void flip_ciphertext_for_admin(std::vector<unsigned char> &ciphertext, size_t target_block_index,
                                const std::vector<unsigned char> &placeholder, const std::vector<unsigned char> &desired)
 {
@@ -166,7 +192,7 @@ int main()
         }
     }
 
-    std::string userdata = std::string(trial_pad, 'A') + placeholder_str;
+    std::string userdata = std::string(trial_pad, 'A') + placeholder_str; // Relleno para alinear más el bloque
     ct = encrypt_userdata_cbc(userdata, iv);
 
     std::vector<unsigned char> placeholder(placeholder_str.begin(), placeholder_str.end());

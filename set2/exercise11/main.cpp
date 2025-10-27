@@ -37,6 +37,10 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+// Este concepto mola pq basicamente añades un monton de bytes (ruido como lo quieras llamar) y como sabes que ECB es determinista, 
+// si metes un input con bloques repetidos (por ejemplo 64 'A's) y detectas bloques repetidos en el ciphertext, 
+// sabes que se ha usado ECB (pq CBC no produce bloques repetidos aunque el input los tenga).
+
 int main()
 {
     std::srand(std::time(nullptr));

@@ -57,6 +57,40 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+// El truco está en alinear tu input para que el byte secreto "caiga" en el final de un bloque, y luego mapearlo
+// contra un diccionario de posibles encriptaciones
+
+// Idea clave: Inputs crecientes ("A", "AA", "AAA"...) para "empujar" el unknown_string hacia posiciones predecibles en los bloques.
+// Crea un input que deje exactamente 1 byte vacío al final del bloque donde cae el byte i (usando padding de 'A's).
+// 12345678 9
+
+// Paso 0: Byte 0 ('1')
+// Referencia:  AAAAAAA1 23456789
+// Diccionario: AAAAAAAx 12345678 9 → Coincide cuando x='1'
+// Paso 1: Byte 1 ('2')
+// Referencia:  AAAAAA12 3456789
+// Diccionario: AAAAAA1x 23456789 → Coincide cuando x='2'
+// Paso 2: Byte 2 ('3')
+// Referencia:  AAAAA123 456789
+// Diccionario: AAAAA12x 3456789 → Coincide cuando x='3'
+// Paso 3: Byte 3 ('4')
+// Referencia:  AAAA1234 56789
+// Diccionario: AAAA123x 456789 → Coincide cuando x='4'
+// Paso 4: Byte 4 ('5')
+// Referencia:  AAA12345 6789
+// Diccionario: AAA1234x 56789 → Coincide cuando x='5'
+// Paso 5: Byte 5 ('6')
+// Referencia:  AA123456 789
+// Diccionario: AA12345x 6789 → Coincide cuando x='6'
+// Paso 6: Byte 6 ('7')
+// Referencia:  A1234567 89
+// Diccionario: A123456x 789 → Coincide cuando x='7'
+// Paso 7: Byte 7 ('8')
+// Referencia:  12345678 9
+// Diccionario: 1234567x 89 → Coincide cuando x='8'
+// Paso 8: Byte 8 ('9') – Salto a bloque 1
+// Referencia:  AAAAAAA1 2345678 9 (en bloque 1)
+// Diccionario: AAAAAAA1 234567x 9 → Coincide cuando x='9' (bloque 1 simulado con known)
 namespace
 {
     const char *UNKNOWN_B64 =
@@ -93,46 +127,44 @@ int detect_block_size()
 
 std::vector<unsigned char> decrypt_ecb_unknown_string(int block_size)
 {
-    // Caracteres que se van adivinando
-    std::vector<unsigned char> known;
-    size_t total_len = ecb_oracle({}).size();
+    std::vector<unsigned char> known;         // Bytes descifrados acumulados.
+    size_t total_len = ecb_oracle({}).size(); // Longitud total del unknown (en bytes, sin padding).
 
-    for (size_t i = 0; i < total_len; ++i)
-    {
-        // Posicion del bloque que estamos descifrando
-        size_t block_index = i / block_size;
+    for (size_t i = 0; i < total_len; ++i) 
+    {                                        // Por cada byte a adivinar (i=0 a len-1).
+        size_t block_index = i / block_size; // ¿En qué bloque cae este byte? (ej: i=0 → block 0).
 
-        // Longitud del padding necesario para alinear el byte a adivinar al final de un bloque
-        size_t pad_len = block_size - (i % block_size) - 1;
+        // Padding para que el byte i caiga JUSTO al final del bloque (1 byte corto).
+        size_t pad_len = block_size - (i % block_size) - 1; // Ej: Si i%16=0, pad_len=15 ('A's para llenar 15, +1 byte secreto).
+        std::vector<unsigned char> input(pad_len, 'A');     // Input: pad_len 'A's.
+        auto reference = ecb_oracle(input);                 // CT: [bloques previos] + [bloque con 'A's + byte_i_del_unknown al final].
 
-        std::vector<unsigned char> input(pad_len, 'A');
-        auto reference = ecb_oracle(input);
-
-        // Calcular todos los valores posibles de AAAAAAAx encriptados (256)
+        // Diccionario: 256 entradas, cada una un posible "último byte".
         std::map<std::vector<unsigned char>, unsigned char> dict;
         for (int b = 0; b < 256; ++b)
         {
-            std::vector<unsigned char> trial = input;
-            trial.insert(trial.end(), known.begin(), known.end());
-            trial.push_back(static_cast<unsigned char>(b));
+            std::vector<unsigned char> trial = input;              // Copia el padding.
+            trial.insert(trial.end(), known.begin(), known.end()); // + bytes ya conocidos (para bytes siguientes en el bloque).
+            trial.push_back(static_cast<unsigned char>(b));        // + byte de prueba (0-255).
 
-            auto encrypted = ecb_oracle(trial);
+            auto encrypted = ecb_oracle(trial); // Cifra: el último bloque será [padding + known + b], que en PT coincide posición con el secreto.
+            // Extrae JUSTO ese bloque del CT.
             std::vector<unsigned char> block(encrypted.begin() + block_index * block_size,
                                              encrypted.begin() + (block_index + 1) * block_size);
-            dict[block] = static_cast<unsigned char>(b);
+            dict[block] = static_cast<unsigned char>(b); // Mapea CT_bloque → b.
         }
 
-
+        // Extrae el bloque "referencia" (con el secreto real al final).
         std::vector<unsigned char> target_block(reference.begin() + block_index * block_size,
                                                 reference.begin() + (block_index + 1) * block_size);
 
-        if (dict.count(target_block)) // Existe
-        {
+        if (dict.count(target_block))
+        { // ¿Coincide con algún b? Sí → ese es el byte secreto.
             known.push_back(dict[target_block]);
         }
         else
         {
-            break;
+            break; // Fin del unknown (no más coincidencias).
         }
     }
     return known;
@@ -156,6 +188,6 @@ int main()
 
     std::cout << "Mensaje descifrado:\n"
               << result << "\n";
-              
+
     return 0;
 }

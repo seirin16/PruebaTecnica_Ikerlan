@@ -34,6 +34,28 @@
 
 //------------------------------------------------------------------------------------------------------------------
 
+//Ahora el oráculo añade un prefijo random de longitud variable (random-prefix || tu-input || unknown), lo que "desalinea" todo 
+//y oculta el unknown. El truco es detectar primero la longitud del prefijo (usando "STIMULUS-RESPONSE": 
+//envías conjunto de 'A's crecientes y buscas repeticiones de bloques idénticos para inferir dónde empieza tu control). 
+//Luego, adaptas el ataque byte-at-a-time "saltando" el prefijo con padding extra y offsets en bloques.
+
+// Ejemplo ilustrativo para detectar la longitud del prefijo random (R) en el ejercicio 14.
+// Problema: No sabemos len(R), así que no podemos calcular el padding exacto para alinear nuestro input (X) y el target (T).
+// Situaciones posibles (block_size=4 para simplicidad; R variable, PT = R + X + T):
+// - len(R)=1: R XXX | T TTT | T
+// - len(R)=2: RR XX | XT TT | TT
+// - len(R)=3: RRR X | XX TT | TTT
+// - len(R)=4: RRRR | XXX T | TTTT
+//
+// Solución: Envía inputs X crecientes ('A's). Observa CT: Cuando añades 1 byte a X pero un bloque CT no cambia,
+// ese bloque PT es solo R + X (sin T). Reduce X en 2 bloques para "reiniciar" alineación como en challenge 12.
+// Ejemplo paso a paso:
+// RRTT TT
+// RRXT TTT
+// RRXX TTTT
+// RRXX XTTT T  PRIMER BLOQUE NO CAMBIA
+// RRXT TTT     ESTAMOS EN EL EJER12
+
 namespace
 {
     const char *UNKNOWN_B64 =
@@ -44,8 +66,8 @@ namespace
 
     std::vector<unsigned char> GLOBAL_KEY = generate_random_key();
     std::vector<unsigned char> UNKNOWN_BYTES = base64_to_bytes(UNKNOWN_B64);
-    // int PREFIX_LEN = 5 + rand() % 6;
-    int PREFIX_LEN = 5;
+    int PREFIX_LEN = 5 + rand() % 6;
+    //int PREFIX_LEN = 5;
 }
 
 std::vector<unsigned char> ecb_oracle(const std::vector<unsigned char> &message)
@@ -56,7 +78,10 @@ std::vector<unsigned char> ecb_oracle(const std::vector<unsigned char> &message)
     return aes_ecb_encrypt(full, GLOBAL_KEY.data());
 }
 
-// Detecta la longitud exacta del prefijo aleatorio (constante entre llamadas)
+// Detecta la longitud exacta del prefijo aleatorio (constante entre llamadas).
+// Idea: Envía probes de 'pad' + 2*block_size 'A's. Cuando dos bloques consecutivos de CT sean idénticos,
+// esos corresponden a dos bloques PT de 'A's puros (tu control). Calcula prefix_len = posición del primer 'A' - pad.
+// Prueba pads 0 a block_size-1 para forzar alineación.
 int detect_prefix_length(int block_size) {
     // Probar todos los rellenos posibles de 0..block_size-1
     // para forzar que existan dos bloques idénticos consecutivos de datos controlados
