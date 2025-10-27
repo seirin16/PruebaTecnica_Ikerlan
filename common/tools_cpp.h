@@ -145,7 +145,7 @@ std::vector<unsigned char> pkcs7_pad(const std::vector<unsigned char> &input, si
 
 std::vector<unsigned char> pkcs7_unpad(const std::vector<unsigned char> &input, size_t block_size = 16)
 {
-    if (input.empty() || input.size() % block_size != 0) 
+    if (input.empty() || input.size() % block_size != 0)
     {
         throw std::runtime_error("Invalid size: not a multiple of block size");
     }
@@ -262,6 +262,50 @@ std::vector<unsigned char> aes_cbc_decrypt(const std::vector<unsigned char> &cip
     return unpadded_plaintext;
 }
 
+std::vector<unsigned char> build_nonce_counter_block(uint64_t nonce, uint64_t counter)
+{
+    std::vector<unsigned char> block(16);
+    // nonce (8 bytes LE)
+    for (int i = 0; i < 8; ++i)
+        block[i] = static_cast<unsigned char>((nonce >> (8 * i)) & 0xFF);
+    // counter (8 bytes LE)
+    for (int i = 0; i < 8; ++i)
+        block[8 + i] = static_cast<unsigned char>((counter >> (8 * i)) & 0xFF);
+    return block;
+}
+
+std::vector<unsigned char> aes_ctr_crypt(const std::vector<unsigned char> &input,
+                                         const unsigned char *key,
+                                         uint64_t nonce = 0)
+{
+    std::vector<unsigned char> output(input.size());
+    size_t block_size = 16;
+    size_t num_blocks = (input.size() + block_size - 1) / block_size; //Es lo que te da el numero de grupos divididos en [16] [16] etc
+
+    for (size_t i = 0; i < num_blocks; ++i) 
+    {
+        // 1. Construir bloque nonce||counter
+        auto counter_block = build_nonce_counter_block(nonce, i);
+
+        // 2. Cifrar el bloque con AES-ECB sin padding
+        std::vector<unsigned char> keystream(16);
+        EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+        EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL);
+        EVP_CIPHER_CTX_set_padding(ctx, 0); //Sin padding
+        int len;
+        EVP_EncryptUpdate(ctx, keystream.data(), &len, counter_block.data(), 16);
+        EVP_CIPHER_CTX_free(ctx);
+
+        // 3. XOR con el bloque de input
+        size_t offset = i * block_size;
+        size_t chunk = std::min(block_size, input.size() - offset);
+        for (size_t j = 0; j < chunk; ++j)
+            output[offset + j] = input[offset + j] ^ keystream[j];
+    }
+
+    return output;
+}
+
 std::vector<unsigned char> generate_random_key()
 {
     std::vector<unsigned char> key(16);
@@ -306,7 +350,7 @@ std::string detect_mode(const std::vector<unsigned char> &ciphertext)
     for (size_t i = 0; i < ciphertext.size(); i += 16)
     {
         std::vector<unsigned char> block(ciphertext.begin() + i, ciphertext.begin() + i + 16); // Extrae el bloque de 16 bytes
-        if (blocks.count(block)) // Si el bloque ya existe, es ECB
+        if (blocks.count(block))                                                               // Si el bloque ya existe, es ECB
         {
             return "ECB";
         }
