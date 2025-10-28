@@ -79,8 +79,8 @@
 //1 - Calcular el bloque donde empieza nuestro input (XXXXXXXXXXXX tiene la misma longitud que ;admin=true;)
 //2 - Aplicamos el XOR entre el bloque anterior y el bloque que queremos conseguir ( XXXXXXXXXXX XOR ;admin=true;)
 //3 - Cifro toda la linea con aes cbc con clave fijo
-//4 - Xor cadena cifrada (al bloque 16 de antes de admin, %20MCs;userdata=) QUE APLICA SOLO AL SIGUIENTE, por eso comment2=%20like%20a%20pound%20of%20baco no se ve afectado
-//5 - Descifro todo (por eso se destroza el bloque de %20MCs;userdata= ) con cbc para que se aplique el xor de antes
+//4 - Xor cadena cifrada (al bloque 16 de antes de admin, %20MCs;userdata=) 
+//5 - Descifro todo (por eso se destroza el bloque de %20MCs;userdata= ) con cbc para que se aplique el xor de antes QUE APLICA SOLO AL SIGUIENTE, por eso comment2=%20like%20a%20pound%20of%20baco no se ve afectado
 namespace
 {
     std::vector<unsigned char> GLOBAL_AES_KEY = generate_random_key();
