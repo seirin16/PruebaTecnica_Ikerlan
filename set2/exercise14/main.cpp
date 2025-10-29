@@ -56,6 +56,8 @@
 // RRXX XTTT T  PRIMER BLOQUE NO CAMBIA
 // RRXX XXXT TTT     ESTAMOS EN EL EJER12
 
+
+
 namespace
 {
     const char *UNKNOWN_B64 =
