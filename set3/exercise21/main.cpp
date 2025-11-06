@@ -20,7 +20,7 @@
 #include "tools_cpp.h"
 
 //-----------------------------------------------------------------------------------------------------------------
-// Enunciado del ejercicio 19: Implement the MT19937 Mersenne Twister RNG
+// Enunciado del ejercicio 21: Implement the MT19937 Mersenne Twister RNG
 
 // You can get the psuedocode for this from Wikipedia.
 
@@ -107,7 +107,7 @@ private:
 
 int main()
 {
-    MT19937_32 rng(5489); // semilla por defecto
+    MT19937_32 rng(5489); 
 
     for (int i = 0; i < 10; i++)
     {
