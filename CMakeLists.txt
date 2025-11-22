@@ -27,6 +27,7 @@ add_subdirectory(set3/exercise18)
 add_subdirectory(set3/exercise21)
 add_subdirectory(set3/exercise22)
 add_subdirectory(set3/exercise23)
+add_subdirectory(set3/exercise24)
 
 
 
